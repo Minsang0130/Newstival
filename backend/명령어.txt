@@ -1,0 +1,13 @@
+$ poetry add django==4.2.16
+
+$ django-admin startproject backend .
+
+$ python manage.py startapp accounts
+
+$ python manage.py startapp boards
+
+$ poetry add djangorestframework
+
+$ poetry add dj-rest-auth
+
+$ poetry add django-allauth
