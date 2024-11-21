@@ -73,8 +73,11 @@ for page in range(1, 13):
                         'URL': detail_url
                     })
 
+# Title이 None인 데이터 제거
+festival_data = [festival for festival in festival_data if festival['Title'] is not None]
+
 # JSON 파일 저장
-with open('festival_details_crolling.json', 'w', encoding='utf-8') as json_file:
+with open(r'data\festival_info\festival_details_crolling.json', 'w', encoding='utf-8') as json_file:
     json.dump(festival_data, json_file, ensure_ascii=False, indent=4)
 
 # JSON 파일 출력 확인

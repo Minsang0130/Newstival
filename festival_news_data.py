@@ -20,7 +20,7 @@ def load_festival_names_from_multiple_files(directory):
             file_path = os.path.join(directory, file_name)
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                festival_names.extend([festival['name'] for festival in data.get('festivals', [])])
+                festival_names.extend([festival['Title'] for festival in data])
     return festival_names
 
 
@@ -89,7 +89,7 @@ def save_results(results, output_file):
 def main():
     # JSON 파일들이 저장된 디렉토리 경로
     directory = r".\data\festival_info"
-    output_file = r".\data\festival_news\news_results.json"
+    output_file = r".\data\festival_news\festival_news_data.json"
     
     # 모든 축제 이름 불러오기
     festival_names = load_festival_names_from_multiple_files(directory)
