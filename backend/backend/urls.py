@@ -20,12 +20,7 @@ from django.urls import path, include
 
 # 개발 서버 기본 경로: http://127.0.0.1:8000/
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    # path('hello/', views.hello),
-    # hello/ 경로로 요청이 오면
-    # board 앱의 url 로 요청을 보내겠다.
-    # path('hello/', include('boards.urls')),
-    
+    path('admin/', admin.site.urls),    
     path('api/v1/', include('boards.urls')),
 
     path('dj-rest-auth/', include('dj_rest_auth.urls')),

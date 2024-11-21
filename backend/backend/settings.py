@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     # my app
     'accounts',
     'boards',
+    'festivals_details',
+    'festivals_news',
     
     # DRF
     'rest_framework',
@@ -46,6 +48,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
 
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -123,7 +126,8 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'GOM_DATA',
+        # 'NAME': 'GOM_DATA',
+        'NAME': 'backend',
         'USER': 'postgres',
         'PASSWORD' : '1234',
         'HOST' : 'localhost',

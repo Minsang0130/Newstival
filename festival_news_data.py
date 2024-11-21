@@ -88,8 +88,8 @@ def save_results(results, output_file):
 # 메인 함수 
 def main():
     # JSON 파일들이 저장된 디렉토리 경로
-    directory = r".\data\festival_info"
-    output_file = r".\data\festival_news\festival_news_data.json"
+    directory = "../data/festival_info/"
+    output_file = "../data/festival_news/festival_news_data.json"
     
     # 모든 축제 이름 불러오기
     festival_names = load_festival_names_from_multiple_files(directory)

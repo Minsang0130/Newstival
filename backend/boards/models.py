@@ -13,4 +13,4 @@ class Board(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     keyword = models.CharField(_(""), max_length=50)
 
-# 댓글
+    
