@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
 
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -26,10 +25,6 @@ def board_list(request):
         boards = Board.objects.all().order_by('-pk')
         serializer = BoardListSerializer(boards, many=True)
         return Response(serializer.data)
-
-
-######
-
 
 # 게시글 삭제(DELETE) 
 @api_view(['DELETE'])

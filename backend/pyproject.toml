@@ -2,7 +2,8 @@
 name = "backend"
 version = "0.1.0"
 description = ""
-authors = ["안지수 <ajs7270@snu.ac.kr>"]
+authors = ["이민상 <alstkd2919@naver.com>", 
+          "류현웅 <r1h2w3@naver.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
