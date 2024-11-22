@@ -19,8 +19,13 @@ export const fetchWordCloud = async (region) => {
 
 // 히트맵 데이터 가져오기
 export const fetchHeatmap = async () => {
-  const response = await axiosInstance.get(`/dashboard/heatmap`);
-  return response.data;
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/dashboard/heatmap/`);
+    return response.data;
+  } catch (error) {
+    console.error('히트맵 데이터 가져오기 실패:', error);
+    throw error;
+  }
 };
 
 // TOP 3 지역 뉴스 바차트 데이터
