@@ -1,5 +1,7 @@
 import os
 import django
+import html
+from bs4 import BeautifulSoup
 
 # DJANGO_SETTINGS_MODULE 설정 (프로젝트 이름에 맞게 변경)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
@@ -55,17 +57,31 @@ def filter_recent_articles(articles, months=12):
     return recent_articles
 
 # DB에 저장
-def save_articles_to_db(festival_name, main_region,articles):
+def save_articles_to_db(festival_name, main_region, articles):
     for article in articles:
         try:
-            # link가 중복되었을 경우 기존 데이터를 업데이트
+            # 제목과 설명을 가져옵니다
+            title = article['title']
+            description = article.get('description', '')
+
+            # HTML 태그 제거
+            title_soup = BeautifulSoup(title, features='html.parser')
+            title_text = title_soup.get_text()
+            description_soup = BeautifulSoup(description, features='html.parser')
+            description_text = description_soup.get_text()
+
+            # HTML 엔티티 디코딩
+            clean_title = html.unescape(title_text)
+            clean_description = html.unescape(description_text)
+
+            # 데이터베이스에 저장
             FestivalNews.objects.update_or_create(
                 link=article['link'],
                 defaults={
                     'festival_name': festival_name,
-                    'title': article['title'],
+                    'title': clean_title,
                     'originallink': article['originallink'],
-                    'description': article.get('description', ''),
+                    'description': clean_description,
                     'pub_date': article['pubDate'],
                     'main_region': main_region,
                 }
@@ -73,11 +89,10 @@ def save_articles_to_db(festival_name, main_region,articles):
         except Exception as e:
             print(f"Error saving article: {e}")
 
-
 # 메인 함수
 def main():
     # JSON 파일들이 저장된 디렉토리 경로
-    directory = r"../data/festival_info"
+    directory = r"data/festival_info"
 
     # 축제 이름, 지역 로드
     festival = []
@@ -105,34 +120,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-'''
-
-def main():
-    # JSON 파일들이 저장된 디렉토리 경로
-    directory = r"../data/festival_info"
-
-    # 축제 이름, 지역 로드
-    festival = []
-    for file_name in os.listdir(directory):
-        if file_name.endswith('.json'):
-            with open(os.path.join(directory, file_name), 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                festival.extend([
-                    [festival.get('Title', 'Unknown'), festival.get('Main Region', 'Unknown')] for festival in data
-                ])
-
-    # 뉴스 검색 및 저장
-    for name, main_region in festival:
-        if not isinstance(name, str):
-            print(f"Invalid festival name: {name}")
-            continue
-        print(f"Searching news for: {name}")
-        response = search_news(name)
-        if response and 'items' in response:
-            recent_articles = filter_recent_articles(response['items'])
-            save_articles_to_db(name, main_region, recent_articles)
-        else:
-            print(f"No articles found for {name}")
-'''

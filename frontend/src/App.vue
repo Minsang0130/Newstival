@@ -9,7 +9,8 @@ import { RouterLink, RouterView } from 'vue-router'
     <RouterLink to="/">메인 페이지</RouterLink> |
     <RouterLink to="/login">로그인</RouterLink> |
     <RouterLink to="/signup">회원가입</RouterLink>|
-    <RouterLink to="/board">게시판</RouterLink>
+    <RouterLink to="/board">게시판</RouterLink>|
+    <RouterLink to="/dashboard">대시보드</RouterLink>
   </nav>
 
   <!-- RouterView 에 경로에 해당하는 컴포넌트가 출력된다. -->
