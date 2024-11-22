@@ -7,6 +7,7 @@ import LoginView from '@/views/LoginView.vue'
 import SignupView from '@/views/SignupView.vue'
 import BoardCreateView from '@/views/BoardCreateView.vue'
 import BoardView from '../views/BoardView.vue';
+import DashboardPage from '../views/DashboardPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,6 +36,11 @@ const router = createRouter({
       path: '/board',
       name: 'Board',
       component: BoardView, // 새 라우트 추가
+    },
+    {
+      path: '/dashboard',
+      name: 'Dashboard',
+      component: DashboardPage, // 대시보드 페이지 컴포넌트
     },
   ],
 })
