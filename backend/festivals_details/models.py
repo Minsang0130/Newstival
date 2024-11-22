@@ -3,6 +3,7 @@ from django.db import models
 class Festival_Details(models.Model):
     title = models.CharField(max_length=255, verbose_name="축제 이름")
     region = models.CharField(max_length=255, null=True, blank=True, verbose_name="지역")
+    Main_Region = models.CharField(max_length=255, null=True, blank=True, verbose_name="지역권")
     period = models.CharField(max_length=255, null=True, blank=True, verbose_name="기간")
     nature = models.CharField(max_length=255, null=True, blank=True, verbose_name="축제 성격")
     fee = models.CharField(max_length=255, null=True, blank=True, verbose_name="입장료")
