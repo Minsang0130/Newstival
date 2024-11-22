@@ -18,12 +18,21 @@ from .serializers import FestivalNewsSerializer
 # 지역에 해당하는 뉴스를 필터링하여 반환하는 API
 class FilterNewsByRegion(APIView):
     def get(self, request, region):
-        # main_region이 주어진 지역과 일치하는 뉴스 필터링
+        # 로그 출력
+        print(f"Requested region: {region}")
+        # 데이터베이스에서 해당 지역의 뉴스 검색
         articles = FestivalNews.objects.filter(main_region=region)
-        
-        # 직렬화하여 반환
+        if not articles.exists():
+            # 지역에 해당하는 뉴스가 없는 경우
+            return Response(
+                {"error": f"No articles found for region: {region}"},
+                status=status.HTTP_404_NOT_FOUND
+            )
         serializer = FestivalNewsSerializer(articles, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 def decode_html_entities(text):
     return html.unescape(text)
 
