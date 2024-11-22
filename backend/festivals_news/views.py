@@ -8,6 +8,33 @@ import html
 from django.db.models import Count
 from datetime import datetime
 
+# Create your views here.
+
+# festivals_news/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import FestivalNews
+from .serializers import FestivalNewsSerializer
+
+# 지역에 해당하는 뉴스를 필터링하여 반환하는 API
+class FilterNewsByRegion(APIView):
+    def get(self, request, region):
+        # 로그 출력
+        print(f"Requested region: {region}")
+        # 데이터베이스에서 해당 지역의 뉴스 검색
+        articles = FestivalNews.objects.filter(main_region=region)
+        if not articles.exists():
+            # 지역에 해당하는 뉴스가 없는 경우
+            return Response(
+                {"error": f"No articles found for region: {region}"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = FestivalNewsSerializer(articles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 def decode_html_entities(text):
     return html.unescape(text)
 
