@@ -5,6 +5,8 @@ import re
 from .models import FestivalNews
 from bs4 import BeautifulSoup
 import html
+from django.db.models import Count
+from datetime import datetime
 
 def decode_html_entities(text):
     return html.unescape(text)
@@ -39,3 +41,14 @@ def get_wordcloud_data(request):
     wordcloud_data = word_counts.most_common(100)
 
     return JsonResponse(wordcloud_data, safe=False)
+
+def get_heatmap_data(request):
+    # 오늘 날짜 기준으로 뉴스 개수를 계산
+    today = datetime.now()
+    news_queryset = FestivalNews.objects.filter(pub_date__date=today)
+
+    # 지역별로 그룹화하고 개수를 세기
+    region_counts = news_queryset.values('main_region').annotate(count=Count('id'))
+
+    # JsonResponse로 변환하여 반환
+    return JsonResponse(list(region_counts), safe=False)
