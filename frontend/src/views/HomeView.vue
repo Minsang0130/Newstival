@@ -55,17 +55,14 @@ export default {
     // 지역을 선택하여 API에서 데이터를 가져오는 메서드
     
     async fetchArticles(region) {
-      console.log(region);
-      
       try {
-        // API 호출
-        const response = await axios.get(`/news/region/${region}/`);
-        // 가져온 데이터를 articles 배열에 저장
+        // URL에 맞게 지역명을 인코딩
+        const response = await axios.get(`/news/region/${encodeURIComponent(region)}/`);
         this.articles = response.data;
       } catch (error) {
-        console.error("기사 가져오기 실패:", error);
+        console.error("기사 가져오기 실패:", error); // 로그 출력
       }
-    },
+    }
   },
 };
 </script>
