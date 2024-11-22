@@ -8,6 +8,7 @@ class FestivalNews(models.Model):
     link = models.URLField(unique=True, max_length=500)  # 중복 제거를 위해 unique 설정
     description = models.TextField(blank=True)
     pub_date = models.DateTimeField()
-
+    main_region = models.CharField(max_length=255)
+    
     def __str__(self):
         return self.title
