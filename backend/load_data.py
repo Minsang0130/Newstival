@@ -55,7 +55,7 @@ def filter_recent_articles(articles, months=12):
     return recent_articles
 
 # DB에 저장
-def save_articles_to_db(festival_name, articles):
+def save_articles_to_db(festival_name, main_region,articles):
     for article in articles:
         try:
             # link가 중복되었을 경우 기존 데이터를 업데이트
@@ -66,7 +66,8 @@ def save_articles_to_db(festival_name, articles):
                     'title': article['title'],
                     'originallink': article['originallink'],
                     'description': article.get('description', ''),
-                    'pub_date': article['pubDate']
+                    'pub_date': article['pubDate'],
+                    'main_region': main_region,
                 }
             )
         except Exception as e:
@@ -76,25 +77,62 @@ def save_articles_to_db(festival_name, articles):
 # 메인 함수
 def main():
     # JSON 파일들이 저장된 디렉토리 경로
-    directory = r"./data/festival_info"
+    directory = r"../data/festival_info"
 
-    # 축제 이름 로드
-    festival_names = []
+    # 축제 이름, 지역 로드
+    festival = []
     for file_name in os.listdir(directory):
         if file_name.endswith('.json'):
             with open(os.path.join(directory, file_name), 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                festival_names.extend([festival['Title'] for festival in data])
+                festival.extend([[festival['Title'],festival['Main Region']] for festival in data])
+
+    # print(festival)
 
     # 뉴스 검색 및 저장
-    for name in festival_names:
+    for name,main_region in festival:
+        print(f"Searching news for: {name}")
+        response = search_news(name)
+
+        # print(response)
+  
+        if response and 'items' in response:
+            recent_articles = filter_recent_articles(response['items'])
+            save_articles_to_db(name, main_region,recent_articles)
+        else:
+            print(f"No articles found for {name}")
+ 
+
+if __name__ == "__main__":
+    main()
+
+
+'''
+
+def main():
+    # JSON 파일들이 저장된 디렉토리 경로
+    directory = r"../data/festival_info"
+
+    # 축제 이름, 지역 로드
+    festival = []
+    for file_name in os.listdir(directory):
+        if file_name.endswith('.json'):
+            with open(os.path.join(directory, file_name), 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                festival.extend([
+                    [festival.get('Title', 'Unknown'), festival.get('Main Region', 'Unknown')] for festival in data
+                ])
+
+    # 뉴스 검색 및 저장
+    for name, main_region in festival:
+        if not isinstance(name, str):
+            print(f"Invalid festival name: {name}")
+            continue
         print(f"Searching news for: {name}")
         response = search_news(name)
         if response and 'items' in response:
             recent_articles = filter_recent_articles(response['items'])
-            save_articles_to_db(name, recent_articles)
+            save_articles_to_db(name, main_region, recent_articles)
         else:
             print(f"No articles found for {name}")
-
-if __name__ == "__main__":
-    main()
+'''
