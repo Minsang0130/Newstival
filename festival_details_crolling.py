@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+import os
 
 # 기본 URL
 base_url = "https://www.mcst.go.kr/kor/s_culture/festival/festivalList.jsp?pMenuCD=&pCurrentPage={page}&pSearchType=01&pSearchWord=&pSeq=&pSido=&pOrder=01up&pPeriod=pTMonth&fromDt=2024.11.20.&toDt=2025.02.20."
@@ -12,7 +13,7 @@ detail_base_url = "https://www.mcst.go.kr/kor/s_culture/festival/"
 festival_data = []
 
 # 1페이지부터 12페이지까지 반복
-for page in range(1, 13):
+for page in range(1, 13):  # 테스트를 위해 1페이지로 제한
     url = base_url.format(page=page)
     response = requests.get(url)
     
@@ -42,6 +43,12 @@ for page in range(1, 13):
                     except AttributeError:
                         region = None
                         
+                    # Main Region 추출
+                    if region:
+                        main_region = region.split()[0]
+                    else:
+                        main_region = None
+                        
                     try:
                         period = detail_soup.select_one('#content > div.contentWrap > div.viewWarp > dl > dd:nth-child(4)').get_text(strip=True)
                     except AttributeError:
@@ -61,23 +68,29 @@ for page in range(1, 13):
                         info = detail_soup.select_one('#content > div.contentWrap > div.viewWarp > div.view_con').get_text(strip=True)
                     except AttributeError:
                         info = None
-                    
-                    # 결과 저장
-                    festival_data.append({
-                        'Title': title,
-                        'Region': region,
-                        'Period': period,
-                        'Nature': nature,
-                        'Fee': fee,
-                        'Info': info,
-                        'URL': detail_url
-                    })
 
-# Title이 None인 데이터 제거
-festival_data = [festival for festival in festival_data if festival['Title'] is not None]
+                    try:
+                        related_website = detail_soup.select_one('#content > div.contentWrap > div.viewWarp > dl > dd:nth-child(8) > a').get_text(strip=True)
+                    except AttributeError:
+                        related_website = None
+                        
+                    # Title이 None이 아니면 저장
+                    if title:
+                        festival_data.append({
+                            'Title': title,
+                            'Region': region,
+                            'Main Region': main_region,
+                            'Period': period,
+                            'Nature': nature,
+                            'Fee': fee,
+                            'Info': info,
+                            'Related Website': related_website,
+                            'URL': detail_url
+                        })
 
+os.makedirs('data/festival_info', exist_ok=True)
 # JSON 파일 저장
-with open(r'data\festival_info\festival_details_crolling.json', 'w', encoding='utf-8') as json_file:
+with open('data/festival_info/festival_details.json', 'w', encoding='utf-8') as json_file:
     json.dump(festival_data, json_file, ensure_ascii=False, indent=4)
 
 # JSON 파일 출력 확인
