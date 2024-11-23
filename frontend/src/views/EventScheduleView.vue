@@ -4,7 +4,7 @@
     <div>
       <label for="region-select">지역 선택:</label>
       <select id="region-select" v-model="selectedRegion" @change="fetchEvents">
-        <option disabled value="">지역을 선택하세요</option>
+        <option value="">모든 지역</option> <!-- 기본값으로 "모든 지역" 추가 -->
         <option v-for="region in regions" :key="region" :value="region">
           {{ region }}
         </option>
@@ -25,8 +25,8 @@
           <p><strong>지역:</strong> {{ event.region }}</p>
           <p><strong>정보:</strong> {{ event.info }}</p>
           <p>
-            <strong>관련 링크:</strong>
-            <a :href="event.url" target="_blank">더 알아보기</a>
+            <strong>관련 링크: </strong>
+            <a :href="event.url" target="_blank"> 더 알아보기</a>
           </p>
         </li>
       </ul>
@@ -53,20 +53,22 @@ export default {
         "경기도",
         "대전시",
       ], // 지역 목록
-      selectedRegion: "", // 선택한 지역
+      selectedRegion: "", // 선택한 지역 (기본값은 "모든 지역")
       events: [], // 행사 데이터
       loading: false, // 로딩 상태
     };
   },
   methods: {
     async fetchEvents() {
-      if (!this.selectedRegion) return;
-
       this.loading = true;
+
       try {
-        const response = await axios.get(
-          `/events/region/${encodeURIComponent(this.selectedRegion)}/`
-        );
+        // 지역 선택 여부에 따라 API 요청 URL 설정
+        const url = this.selectedRegion
+          ? `/events/region/${encodeURIComponent(this.selectedRegion)}/`
+          : `/events/`; // 모든 지역의 행사 정보 가져오기
+
+        const response = await axios.get(url);
         this.events = response.data; // 데이터 저장
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -75,6 +77,10 @@ export default {
         this.loading = false;
       }
     },
+  },
+  mounted() {
+    // 페이지 로드 시 모든 지역의 축제 정보 불러오기
+    this.fetchEvents();
   },
 };
 </script>
