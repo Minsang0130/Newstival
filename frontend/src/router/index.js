@@ -7,6 +7,7 @@ import LoginView from '@/views/LoginView.vue'
 import SignupView from '@/views/SignupView.vue'
 import BoardCreateView from '@/views/BoardCreateView.vue'
 import BoardView from '../views/BoardView.vue';
+import EventScheduleView from '@/views/EventScheduleView.vue'
 import DashboardPage from '../views/DashboardPage.vue';
 
 const router = createRouter({
@@ -16,6 +17,11 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+    },
+    {
+      path: '/events', // 새로운 경로
+      name: 'events',
+      component: EventScheduleView,
     },
     {
       path: '/login',
