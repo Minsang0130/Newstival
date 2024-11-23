@@ -18,20 +18,33 @@ from .models import FestivalNews
 from .serializers import FestivalNewsSerializer
 
 # 지역에 해당하는 뉴스를 필터링하여 반환하는 API
-class FilterNewsByRegion(APIView):
-    def get(self, request, region):
-        # 로그 출력
-        print(f"Requested region: {region}")
-        # 데이터베이스에서 해당 지역의 뉴스 검색
-        articles = FestivalNews.objects.filter(main_region=region)
-        if not articles.exists():
-            # 지역에 해당하는 뉴스가 없는 경우
-            return Response(
-                {"error": f"No articles found for region: {region}"},
-                status=status.HTTP_404_NOT_FOUND
-            )
+class NewsByRegionView(APIView):
+    """
+    선택한 지역에 따라 관련 뉴스 정보를 반환.
+    선택한 지역이 없으면 모든 뉴스를 반환.
+    """
+    def get(self, request, region=None):
+        if region:
+            articles = FestivalNews.objects.filter(main_region=region)
+            if not articles.exists():
+                return Response({"message": f"No news found for region: {region}"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            articles = FestivalNews.objects.all()  # 모든 뉴스 반환
+
         serializer = FestivalNewsSerializer(articles, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AllNewsView(APIView):
+    """
+    모든 뉴스 데이터를 반환하는 API 뷰
+    """
+    def get(self, request):
+        # 모든 뉴스 데이터를 가져옵니다.
+        articles = FestivalNews.objects.all()  # 뉴스 데이터베이스 쿼리
+        serializer = FestivalNewsSerializer(articles, many=True)  # 직렬화
+        return Response(serializer.data, status=status.HTTP_200_OK)  # JSON 응답
+
 
 
 
