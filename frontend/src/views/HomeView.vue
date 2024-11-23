@@ -2,13 +2,24 @@
   <div class="home-view">
     <h1>뉴스 기사 목록</h1>
     <div>
-      <label for="region-select">지역 선택:</label>
-      <select id="region-select" v-model="selectedRegion" @change="fetchArticles">
-        <option value="">모든 지역</option> <!-- 기본값으로 "모든 지역" 추가 -->
-        <option v-for="region in regions" :key="region" :value="region">
+      <h2>지역 선택:</h2>
+      <div class="region-buttons">
+        <!-- 모든 지역 보기 버튼 -->
+        <button
+          v-for="region in regions"
+          :key="region"
+          @click="setRegion(region)"
+          :class="{ active: selectedRegion === region }"
+        >
           {{ region }}
-        </option>
-      </select>
+        </button>
+        <button
+          @click="setRegion('')"
+          :class="{ active: selectedRegion === '' }"
+        >
+          모든 지역
+        </button>
+      </div>
     </div>
 
     <div v-if="loading">뉴스 데이터를 가져오는 중...</div>
@@ -52,33 +63,37 @@ export default {
         "경기도",
         "대전시",
       ], // 지역 목록
-      selectedRegion: "", // 선택한 지역 (기본값은 "모든 지역")
+      selectedRegion: "", // 선택된 지역 (기본값: 모든 지역)
       articles: [], // 뉴스 데이터
       loading: false, // 로딩 상태
     };
   },
   methods: {
+    // 선택된 지역 설정 및 뉴스 데이터 가져오기
+    setRegion(region) {
+      this.selectedRegion = region;
+      this.fetchArticles();
+    },
     async fetchArticles() {
       this.loading = true;
 
       try {
-        // 지역 선택 여부에 따라 API 요청 URL 설정
         const url = this.selectedRegion
-          ? `/news/region/${encodeURIComponent(this.selectedRegion)}/`
-          : `/news/`; // 모든 지역의 뉴스 데이터 가져오기
+          ? `/news/region/${encodeURIComponent(this.selectedRegion)}/` // 특정 지역 뉴스
+          : `/news/`; // 모든 지역 뉴스
 
-        const response = await axios.get(url);
+        const response = await axios.get(url); // Axios 요청
         this.articles = response.data; // 데이터 저장
       } catch (error) {
         console.error("Error fetching articles:", error);
-        this.articles = []; // 데이터 초기화
+        this.articles = []; // 요청 실패 시 빈 데이터
       } finally {
         this.loading = false;
       }
     },
   },
   mounted() {
-    // 페이지 로드 시 모든 지역의 뉴스 데이터를 기본적으로 가져옴
+    // 페이지 로드 시 모든 뉴스 데이터 가져오기
     this.fetchArticles();
   },
 };
@@ -87,6 +102,26 @@ export default {
 <style scoped>
 .home-view {
   padding: 20px;
+}
+
+.region-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button.active {
+  background-color: #007bff;
+  color: white;
 }
 
 ul {
