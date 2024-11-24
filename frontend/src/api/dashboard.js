@@ -30,8 +30,13 @@ export const fetchHeatmap = async () => {
 
 // TOP 3 지역 뉴스 바차트 데이터
 export const fetchTopRegions = async () => {
-  const response = await axiosInstance.get(`/dashboard/top-regions`);
-  return response.data;
+  try {
+    const response = await axiosInstance.get(`${BASE_URL}/dashboard/top-regions/`);
+    return response.data;
+  } catch (error) {
+    console.error('TOP 3 지역 데이터 가져오기 실패:', error);
+    throw error;
+  }
 };
 
 // 오늘 가장 많이 본 뉴스 데이터
