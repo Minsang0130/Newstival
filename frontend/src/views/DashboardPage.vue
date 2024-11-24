@@ -13,7 +13,10 @@
     </div>
     <!-- 두 번째 행: 바 차트 1과 바 차트 2 -->
     <div class="dashboard-row">
-      <div class="dashboard-block" id="barchart1-container">바 차트 1</div>
+      <div class="dashboard-block" id="barchart1-container">
+        <div class="chart-title">바차트1 제목</div>
+        <div id="barchart1-content"></div>
+      </div>
       <div class="dashboard-block" id="barchart2-container">바 차트 2</div>
     </div>
   </div>
@@ -24,7 +27,7 @@
 
 <script>
 import WordCloud from "wordcloud";
-import { fetchWordCloud, fetchHeatmap } from "../api/dashboard";
+import { fetchWordCloud, fetchHeatmap, fetchTopRegions } from "../api/dashboard";
 import * as d3 from "d3";
 import * as topojson from "topojson";
 import southKoreaMap from "../assets/south-korea-map.json";
@@ -37,15 +40,14 @@ export default {
       loading: true,
       error: null,
       heatmapData: [], // 히트맵 데이터
+      topRegionsData: [], // TOP 3 지역 데이터
     };
   },
   async mounted() {
-    // 워드클라우드 데이터 로드
     try {
-      const data = await fetchWordCloud();
-      if (Array.isArray(data)) {
-        this.wordcloudData = data;
-        this.loading = false;
+      const wordCloudData = await fetchWordCloud();
+      if (Array.isArray(wordCloudData)) {
+        this.wordcloudData = wordCloudData;
         this.renderWordCloud();
       } else {
         throw new Error("워드클라우드 데이터가 배열 형태가 아닙니다.");
@@ -53,14 +55,12 @@ export default {
     } catch (error) {
       this.error = "워드클라우드 데이터를 로드하는 데 실패했습니다.";
       console.error("워드클라우드 데이터 로딩 중 오류 발생:", error);
-      this.loading = false;
     }
 
-    // 히트맵 데이터 로드
     try {
-      const data = await fetchHeatmap();
-      if (Array.isArray(data)) {
-        this.heatmapData = data;
+      const heatmapData = await fetchHeatmap();
+      if (Array.isArray(heatmapData)) {
+        this.heatmapData = heatmapData;
         this.renderHeatmap();
       } else {
         throw new Error("히트맵 데이터가 배열 형태가 아닙니다.");
@@ -68,6 +68,18 @@ export default {
     } catch (error) {
       this.error = "히트맵 데이터를 로드하는 데 실패했습니다.";
       console.error("히트맵 데이터 로딩 중 오류 발생:", error);
+    }
+
+    try {
+      const topRegionsData = await fetchTopRegions();
+      if (Array.isArray(topRegionsData)) {
+        this.topRegionsData = topRegionsData;
+        this.renderBarChart();
+      } else {
+        throw new Error("TOP 3 지역 데이터가 배열 형태가 아닙니다.");
+      }
+    } catch (error) {
+      console.error("TOP 3 지역 데이터 로딩 중 오류 발생:", error);
     }
   },
   methods: {
@@ -187,6 +199,65 @@ export default {
         return regionCounts[region] || "";
       });
     },
+    formatDate(date) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(date).toLocaleDateString('ko-KR', options);
+    },
+    renderBarChart() {
+      const container = d3.select("#barchart1-content");
+      const width = container.node().offsetWidth || 600;
+      const height = 360;
+      const margin = { top: 20, right: 30, bottom: 50, left: 40 };
+
+      const svg = container
+        .append("svg")
+        .attr("viewBox", `0 0 ${width} ${height}`)
+        .attr("preserveAspectRatio", "xMidYMid meet");
+
+      const x = d3
+        .scaleBand()
+        .domain(this.topRegionsData.map(d => d.main_region))
+        .range([margin.left, width - margin.right])
+        .padding(0.1);
+
+      const y = d3
+        .scaleLinear()
+        .domain([0, d3.max(this.topRegionsData, d => d.count)])
+        .nice()
+        .range([height - margin.bottom, margin.top]);
+
+      svg
+        .append("g")
+        .selectAll("rect")
+        .data(this.topRegionsData)
+        .enter()
+        .append("rect")
+        .attr("x", d => x(d.main_region))
+        .attr("y", d => y(d.count))
+        .attr("height", d => y(0) - y(d.count))
+        .attr("width", x.bandwidth())
+        .attr("fill", "#3182CE");
+
+      svg
+        .append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .style("font-weight", "bold")
+        .style("font-size", "20px");
+
+      svg
+        .append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y).ticks(d3.max(this.topRegionsData, d => d.count)))
+        .selectAll("text")
+        .style("font-size", "16px");
+
+      // Update the chart title with the current date
+      const today = new Date();
+      const formattedDate = this.formatDate(today);
+      document.querySelector('.chart-title').textContent = `${formattedDate} 기사 수 TOP3`;
+    },
   },
 };
 </script>
@@ -196,6 +267,13 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  color: #000;
+  text-align: center;
 }
 
 .dashboard-row {
@@ -205,15 +283,32 @@ export default {
 }
 
 .dashboard-block {
-  background-color: #fff;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 20px;
   box-sizing: border-box;
-  height: 400px; /* 고정된 높이 */
+  height: 400px;
   display: flex;
   flex-direction: column;
-  flex: 1; /* 각 블록이 동일한 너비를 가지도록 설정 */
+  flex: 1;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.dashboard-block:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.chart-title, .map-title, .wordcloud-title {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  background-color: #ffe0e0;
+  border-bottom: 1px solid #fcd3c1;
+  color: #000;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 #wordcloud-container {
@@ -245,17 +340,29 @@ export default {
   width: 100%;
   height: 100%;
   border-radius: 8px;
-  object-fit: contain; /* 지도 내용이 영역 안에 맞춰지도록 설정 */
+  object-fit: contain;
 }
 
 #barchart1-container,
 #barchart2-container {
-  text-align: center;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+  height: 400px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f4f4f4;
-  height: 100%;
+  flex-direction: column;
+  flex: 1;
+}
+
+.chart-title {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
 }
 
 .map-title {
@@ -265,6 +372,10 @@ export default {
   padding: 10px;
   background-color: #f8f9fa;
   border-bottom: 1px solid #dee2e6;
+}
+
+#barchart1-container text {
+  fill: #000;
 }
 
 </style>
