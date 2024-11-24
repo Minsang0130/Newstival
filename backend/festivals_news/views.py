@@ -92,3 +92,17 @@ def get_heatmap_data(request):
 
     # JsonResponse로 변환하여 반환
     return JsonResponse(list(region_counts), safe=False)
+
+class TopRegionsView(APIView):
+    """
+    오늘 날짜 기준으로 기사 수가 가장 많은 상위 3개의 지역을 반환하는 API
+    """
+    def get(self, request):
+        today = datetime.now().date()
+        top_regions = (
+            FestivalNews.objects.filter(pub_date__date=today)
+            .values('main_region')
+            .annotate(count=Count('id'))
+            .order_by('-count')[:3]
+        )
+        return Response(top_regions, status=status.HTTP_200_OK)
