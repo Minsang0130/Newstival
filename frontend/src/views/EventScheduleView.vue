@@ -13,13 +13,13 @@
 
     <div v-if="loading">데이터를 가져오는 중...</div>
 
-    <div v-else-if="events.length === 0">
+    <div v-else-if="paginatedEvents.length === 0">
       선택한 지역에 대한 행사 정보가 없습니다.
     </div>
 
     <div v-else>
       <ul>
-        <li v-for="event in events" :key="event.id">
+        <li v-for="event in paginatedEvents" :key="event.id">
           <h3>{{ event.title }}</h3>
           <p><strong>기간:</strong> {{ event.period }}</p>
           <p><strong>지역:</strong> {{ event.region }}</p>
@@ -30,6 +30,13 @@
           </p>
         </li>
       </ul>
+
+      <!-- 페이지네이션 -->
+      <div class="pagination">
+        <button :disabled="currentPage === 1" @click="currentPage--">이전</button>
+        <span>페이지 {{ currentPage }} / {{ totalPages }}</span>
+        <button :disabled="currentPage === totalPages" @click="currentPage++">다음</button>
+      </div>
     </div>
   </div>
 </template>
@@ -54,9 +61,23 @@ export default {
         "대전시",
       ], // 지역 목록
       selectedRegion: "", // 선택한 지역 (기본값은 "모든 지역")
-      events: [], // 행사 데이터
+      events: [], // 전체 행사 데이터
       loading: false, // 로딩 상태
+      currentPage: 1, // 현재 페이지
+      eventsPerPage: 5, // 페이지당 행사 개수
     };
+  },
+  computed: {
+    // 현재 페이지에 표시될 행사 데이터
+    paginatedEvents() {
+      const start = (this.currentPage - 1) * this.eventsPerPage;
+      const end = start + this.eventsPerPage;
+      return this.events.slice(start, end);
+    },
+    // 총 페이지 수
+    totalPages() {
+      return Math.ceil(this.events.length / this.eventsPerPage);
+    },
   },
   methods: {
     async fetchEvents() {
@@ -70,6 +91,7 @@ export default {
 
         const response = await axios.get(url);
         this.events = response.data; // 데이터 저장
+        this.currentPage = 1; // 새로운 데이터 로드 시 페이지 초기화
       } catch (error) {
         console.error("Error fetching events:", error);
         this.events = []; // 데이터 초기화
@@ -79,7 +101,7 @@ export default {
     },
   },
   mounted() {
-    // 페이지 로드 시 모든 지역의 축제 정보 불러오기
+    // 페이지 로드 시 모든 지역의 행사 정보 불러오기
     this.fetchEvents();
   },
 };
@@ -100,5 +122,18 @@ li {
   border: 1px solid #ccc;
   padding: 10px;
   border-radius: 5px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 </style>
