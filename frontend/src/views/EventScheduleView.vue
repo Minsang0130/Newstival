@@ -1,43 +1,59 @@
 <template>
   <div class="event-schedule">
-    <h1>행사 일정</h1>
-    <div>
-      <label for="region-select">지역 선택:</label>
-      <select id="region-select" v-model="selectedRegion" @change="fetchEvents">
-        <option value="">모든 지역</option> <!-- 기본값으로 "모든 지역" 추가 -->
+    <!-- 헤더 -->
+    <header class="header">
+      <h1>🎤 지역별 행사 일정 🎵</h1>
+      <p>원하는 지역을 선택하고 다채로운 행사를 확인해보세요!</p>
+    </header>
+
+    <!-- 지역 선택 -->
+    <section class="region-section">
+      <label for="region-select" class="region-label">🌍 지역 선택</label>
+      <select
+        id="region-select"
+        v-model="selectedRegion"
+        @change="fetchEvents"
+        class="region-select"
+      >
+        <option value="">모든 지역</option>
         <option v-for="region in regions" :key="region" :value="region">
           {{ region }}
         </option>
       </select>
+    </section>
+
+    <!-- 로딩 상태 -->
+    <div v-if="loading" class="loading">
+      <p>🔄 데이터를 불러오는 중입니다. 잠시만 기다려주세요! 🔄</p>
     </div>
 
-    <div v-if="loading">데이터를 가져오는 중...</div>
-
-    <div v-else-if="paginatedEvents.length === 0">
-      선택한 지역에 대한 행사 정보가 없습니다.
+    <!-- 데이터 없음 -->
+    <div v-else-if="paginatedEvents.length === 0" class="no-data">
+      <p>😔 선택한 지역에 해당하는 행사가 없습니다. 다른 지역을 선택해주세요!</p>
     </div>
 
-    <div v-else>
+    <!-- 행사 목록 -->
+    <section v-else class="events-section">
       <ul>
-        <li v-for="event in paginatedEvents" :key="event.id">
+        <li v-for="event in paginatedEvents" :key="event.id" class="event-card">
           <h3>{{ event.title }}</h3>
-          <p><strong>기간:</strong> {{ event.period }}</p>
-          <p><strong>지역:</strong> {{ event.region }}</p>
-          <p><strong>정보:</strong> {{ event.info }}</p>
+          <p><strong>📅 기간:</strong> {{ event.period }}</p>
+          <p><strong>📍 지역:</strong> {{ event.region }}</p>
+          <p><strong>📖 정보:</strong> {{ event.info }}</p>
           <p>
-            <strong>관련 링크: </strong>
-            <a :href="event.url" target="_blank"> 더 알아보기</a>
+            <strong>🔗 관련 링크:</strong>
+            <a :href="event.url" target="_blank" rel="noopener">자세히 보기</a>
           </p>
         </li>
       </ul>
 
       <!-- 페이지네이션 -->
       <div class="pagination">
-        <button :disabled="currentPage === 1" @click="currentPage--">이전</button>
+        <button :disabled="currentPage === 1" @click="currentPage--">◀ 이전</button>
         <span>페이지 {{ currentPage }} / {{ totalPages }}</span>
-        <button :disabled="currentPage === totalPages" @click="currentPage++">다음</button>
+        <button :disabled="currentPage === totalPages" @click="currentPage++">다음 ▶</button>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -59,22 +75,20 @@ export default {
         "인천시",
         "경기도",
         "대전시",
-      ], // 지역 목록
-      selectedRegion: "", // 선택한 지역 (기본값은 "모든 지역")
-      events: [], // 전체 행사 데이터
-      loading: false, // 로딩 상태
-      currentPage: 1, // 현재 페이지
-      eventsPerPage: 5, // 페이지당 행사 개수
+      ],
+      selectedRegion: "",
+      events: [],
+      loading: false,
+      currentPage: 1,
+      eventsPerPage: 5,
     };
   },
   computed: {
-    // 현재 페이지에 표시될 행사 데이터
     paginatedEvents() {
       const start = (this.currentPage - 1) * this.eventsPerPage;
       const end = start + this.eventsPerPage;
       return this.events.slice(start, end);
     },
-    // 총 페이지 수
     totalPages() {
       return Math.ceil(this.events.length / this.eventsPerPage);
     },
@@ -82,58 +96,179 @@ export default {
   methods: {
     async fetchEvents() {
       this.loading = true;
-
       try {
-        // 지역 선택 여부에 따라 API 요청 URL 설정
         const url = this.selectedRegion
           ? `/events/region/${encodeURIComponent(this.selectedRegion)}/`
-          : `/events/`; // 모든 지역의 행사 정보 가져오기
-
+          : `/events/`;
         const response = await axios.get(url);
-        this.events = response.data; // 데이터 저장
-        this.currentPage = 1; // 새로운 데이터 로드 시 페이지 초기화
+        this.events = response.data;
+        this.currentPage = 1;
       } catch (error) {
         console.error("Error fetching events:", error);
-        this.events = []; // 데이터 초기화
+        this.events = [];
       } finally {
         this.loading = false;
       }
     },
   },
   mounted() {
-    // 페이지 로드 시 모든 지역의 행사 정보 불러오기
     this.fetchEvents();
   },
 };
 </script>
 
 <style scoped>
+/* 전체 레이아웃 */
 .event-schedule {
-  padding: 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #3a3a3a;
+  background: linear-gradient(135deg, #fef7f1, #fff4e3);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-ul {
-  list-style-type: none;
+/* 헤더 */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  font-size: 2.6rem;
+  font-weight: bold;
+  color: #ef6c57;
+}
+
+.header p {
+  font-size: 1.2rem;
+  color: #7a7a7a;
+}
+
+/* 지역 선택 */
+.region-section {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.region-label {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #ef6c57;
+  margin-right: 15px;
+}
+
+.region-select {
+  font-size: 1rem;
+  padding: 12px 15px;
+  border: 2px solid #ef6c57;
+  border-radius: 10px;
+  background-color: #fff7f1;
+  transition: border-color 0.3s, background-color 0.3s, transform 0.3s;
+}
+
+.region-select:hover {
+  border-color: #d9523f;
+  background-color: #ffe4d3;
+  transform: scale(1.05);
+}
+
+/* 로딩 상태 */
+.loading {
+  text-align: center;
+  font-size: 1.4rem;
+  color: #ef6c57;
+}
+
+/* 데이터 없음 */
+.no-data {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #999;
+}
+
+/* 행사 카드 */
+.events-section ul {
+  list-style: none;
   padding: 0;
 }
 
-li {
-  margin: 15px 0;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 5px;
+.event-card {
+  background: white;
+  border: 2px solid #fcd3c1;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transition: transform 0.4s, box-shadow 0.4s;
 }
 
+.event-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.event-card h3 {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #ef6c57;
+}
+
+.event-card p {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.event-card a {
+  color: #d9523f;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.event-card a:hover {
+  text-decoration: underline;
+}
+
+/* 페이지네이션 */
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 15px;
+  margin-top: 30px;
 }
 
-button:disabled {
+.pagination button {
+  background-color: #ef6c57;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.pagination button:hover {
+  background-color: #d9523f;
+  transform: scale(1.1);
+}
+
+.pagination button:disabled {
+  background-color: #fcd3c1;
   cursor: not-allowed;
-  opacity: 0.5;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
