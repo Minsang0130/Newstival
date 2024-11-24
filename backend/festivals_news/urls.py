@@ -1,7 +1,6 @@
 # festivals_news/urls.py
 from django.urls import path
-from .views import NewsByRegionView
-from .views import AllNewsView
+from .views import NewsByRegionView, AllNewsView, TopRegionsView
 from . import views
 
 urlpatterns = [
@@ -10,4 +9,5 @@ urlpatterns = [
     path('', AllNewsView.as_view(), name='all-news'),
     path('wordcloud/', views.get_wordcloud_data, name='get_wordcloud_data'),
     path('heatmap/', views.get_heatmap_data),
+    path('top-regions/', TopRegionsView.as_view(), name='top-regions'),
 ]
