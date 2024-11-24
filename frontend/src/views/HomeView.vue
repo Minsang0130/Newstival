@@ -1,10 +1,25 @@
 <template>
   <div class="home-view">
-    <h1>뉴스 기사 목록</h1>
-    <div>
-      <h2>지역 선택:</h2>
+    <!-- 헤더 -->
+    <header class="header">
+      <h1>🌸 지역별 뉴스 & 축제 소식 🌸</h1>
+      <p>선택한 지역의 뉴스와 소식을 확인해보세요!</p>
+    </header>
+
+    <!-- 지역 선택 -->
+    <section class="region-section">
+      <h2>지역 선택</h2>
       <div class="region-buttons">
-        <!-- 모든 지역 보기 버튼 -->
+        <!-- 모든 지역 버튼 -->
+        <button
+          @click="setRegion('')"
+          :class="{ active: selectedRegion === '' }"
+          class="all-region-button"
+        >
+          모든 지역
+        </button>
+
+        <!-- 지역별 버튼 -->
         <button
           v-for="region in regions"
           :key="region"
@@ -13,24 +28,23 @@
         >
           {{ region }}
         </button>
-        <button
-          @click="setRegion('')"
-          :class="{ active: selectedRegion === '' }"
-        >
-          모든 지역
-        </button>
       </div>
+    </section>
+
+    <!-- 로딩 상태 -->
+    <div v-if="loading" class="loading">
+      <p>🎡 뉴스를 불러오는 중입니다... 잠시만 기다려주세요! 🎡</p>
     </div>
 
-    <div v-if="loading">뉴스 데이터를 가져오는 중...</div>
-
-    <div v-else-if="paginatedArticles.length === 0">
-      선택한 지역에 대한 뉴스 정보가 없습니다.
+    <!-- 데이터 없음 -->
+    <div v-else-if="paginatedArticles.length === 0" class="no-data">
+      <p>선택한 지역에 해당하는 뉴스 기사가 없습니다. 다른 지역을 선택해보세요!</p>
     </div>
 
-    <div v-else>
+    <!-- 뉴스 기사 목록 -->
+    <section v-else class="news-section">
       <ul>
-        <li v-for="article in paginatedArticles" :key="article.id">
+        <li v-for="article in paginatedArticles" :key="article.id" class="news-card">
           <h3>{{ article.title }}</h3>
           <p><strong>발행일:</strong> {{ article.pub_date }}</p>
           <p><strong>내용:</strong> {{ article.description }}</p>
@@ -43,11 +57,11 @@
 
       <!-- 페이지네이션 -->
       <div class="pagination">
-        <button :disabled="currentPage === 1" @click="currentPage--">이전</button>
+        <button :disabled="currentPage === 1" @click="currentPage--">◀ 이전</button>
         <span>페이지 {{ currentPage }} / {{ totalPages }}</span>
-        <button :disabled="currentPage === totalPages" @click="currentPage++">다음</button>
+        <button :disabled="currentPage === totalPages" @click="currentPage++">다음 ▶</button>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -122,52 +136,138 @@ export default {
 </script>
 
 <style scoped>
+/* 전체 레이아웃 */
 .home-view {
-  padding: 20px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #333;
+  background: linear-gradient(to bottom, #fef6f8, #fff);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 헤더 */
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 2.6rem;
+  font-weight: bold;
+  color: #e91e63;
+}
+
+.header p {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* 지역 버튼 */
+.region-section {
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 .region-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  justify-content: center; /* 가운데 정렬 */
+  gap: 12px;
 }
 
 button {
-  padding: 10px 20px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  background-color: #ffebee;
+  color: #e91e63;
+  border: 2px solid #f8bbd0;
+  border-radius: 20px;
+  padding: 10px 15px;
+  font-size: 1rem;
   cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 button.active {
-  background-color: #007bff;
+  background-color: #e91e63;
   color: white;
+  border-color: #ad1457;
 }
 
-ul {
-  list-style-type: none;
+button:hover {
+  background-color: #ad1457;
+  color: white;
+  transform: translateY(-3px) scale(1.2); /* 확대 효과 추가 */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* 그림자 효과 추가 */
+}
+
+/* "모든 지역" 버튼 */
+.all-region-button {
+  font-weight: bold;
+}
+
+/* 로딩 상태 */
+.loading {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #757575;
+}
+
+/* 데이터 없음 */
+.no-data {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #999;
+}
+
+/* 뉴스 카드 */
+.news-section ul {
+  list-style: none;
   padding: 0;
 }
 
-li {
-  margin: 15px 0;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 5px;
+.news-card {
+  background: white;
+  border: 2px solid #fce4ec;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.news-card h3 {
+  font-size: 1.5rem;
+  color: #e91e63;
+}
+
+.news-card p {
+  font-size: 1rem;
+  color: #555;
+}
+
+/* 페이지네이션 */
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 15px;
 }
 
-button:disabled {
+.pagination button {
+  background-color: #e91e63;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination button:hover {
+  background-color: #c2185b;
+}
+
+.pagination button:disabled {
+  background-color: #f8bbd0;
   cursor: not-allowed;
-  opacity: 0.5;
 }
 </style>
