@@ -94,7 +94,7 @@ const logIn = function () {
 }
 
 .form-input {
-  width: 100%; /* 버튼과 동일한 크기로 맞춤 */
+  width: 85%; /* 버튼과 동일한 크기로 맞춤 */
   padding: 15px;
   font-size: 1rem;
   border: 1px solid #ddd;

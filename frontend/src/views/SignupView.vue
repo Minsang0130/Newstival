@@ -102,7 +102,7 @@ const signUp = function () {
 }
 
 .form-input {
-  width: 100%;
+  width: 85%;
   padding: 15px;
   font-size: 1rem;
   border: 1px solid #ddd;
