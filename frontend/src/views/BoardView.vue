@@ -1,3 +1,34 @@
+<template>
+  <div class="festival-container">
+    <!-- 헤더 -->
+    <header class="festival-header">
+      <h1>✏️ 축제 소식 게시판 📜</h1>
+      <p>축제의 최신 정보를 확인하고 공유하세요!</p>
+      <div v-if="userStore.loginUsername" class="user-panel">
+        <span class="welcome-message">환영합니다, <strong>{{ userStore.loginUsername }}</strong>님 !  </span>
+        <button class="create-post-btn" @click="goCreateBoard">
+          ➕ 새 소식 작성
+        </button>
+      </div>
+    </header>
+
+    <!-- 게시판 리스트 -->
+    <main class="board-section">
+      <div 
+        v-for="board in boardStore.boards"
+        :key="board.id"
+        class="board-card"
+      >
+        <h2 class="board-title">{{ board.title }}</h2>
+        <p class="board-content">{{ board.content }}</p>
+        <footer class="board-footer">
+          <span>작성자: <strong>{{ board.writer }}</strong></span>
+        </footer>
+      </div>
+    </main>
+  </div>
+</template>
+
 <script setup>
 import { useUserStore } from '@/stores/user';
 import { useBoardStore } from '@/stores/board';
@@ -17,69 +48,36 @@ const goCreateBoard = function () {
 };
 </script>
 
-<template>
-  <div class="festival-container">
-    <!-- 헤더 -->
-    <header class="festival-header">
-      <h1>🎉 축제 소식 게시판 🎉</h1>
-      <p>축제의 최신 정보를 확인하고 공유하세요!</p>
-      <div v-if="userStore.loginUsername" class="user-panel">
-        <span class="welcome-message">환영합니다, {{ userStore.loginUsername }}님! 🌟</span>
-        <button class="create-post-btn" @click="goCreateBoard">
-          ➕ 새 소식 작성
-        </button>
-      </div>
-    </header>
-
-    <!-- 게시판 리스트 -->
-    <main class="board-section">
-      <div 
-        v-for="board in boardStore.boards"
-        :key="board.id"
-        class="board-card"
-      >
-        <h2 class="board-title">{{ board.title }}</h2>
-        <p class="board-content">{{ board.content }}</p>
-        <footer class="board-footer">
-          <span>작성자: {{ board.writer }}</span>
-          <span>#{{ board.id }}</span>
-        </footer>
-      </div>
-    </main>
-  </div>
-</template>
-
 <style scoped>
-/* 축제 컨테이너 */
+/* 전체 컨테이너 */
 .festival-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 20px 30px;
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-  border-radius: 15px;
+  background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+  border-radius: 20px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  color: #333;
   animation: fadeIn 1.5s ease-in-out;
-  color: #fff;
-  text-align: center;
 }
 
-/* 헤더 */
+/* 헤더 스타일 */
 .festival-header {
-  margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .festival-header h1 {
-  font-size: 40px;
+  font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 10px;
   color: #fff;
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .festival-header p {
-  font-size: 18px;
-  color: #ffe0e0;
+  font-size: 1.2rem;
+  color: 
 }
 
 .user-panel {
@@ -87,22 +85,23 @@ const goCreateBoard = function () {
 }
 
 .welcome-message {
-  font-size: 16px;
+  font-size: 1.1rem;
   font-weight: bold;
-  color: #fff;
+  color:darkslateblue
 }
 
 .create-post-btn {
   background: #ff6f61;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 20px;
   padding: 10px 20px;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
   transition: transform 0.3s, background-color 0.3s;
   margin-top: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .create-post-btn:hover {
@@ -114,42 +113,42 @@ const goCreateBoard = function () {
 .board-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  gap: 25px;
+  margin-top: 30px;
 }
 
 .board-card {
   background: rgba(255, 255, 255, 0.9);
-  border-radius: 10px;
+  border-radius: 15px;
   padding: 20px;
   text-align: left;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .board-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
 }
 
 .board-title {
-  font-size: 22px;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #ff6f61;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .board-content {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 10px;
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 20px;
 }
 
 .board-footer {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
-  color: #666;
+  font-size: 0.9rem;
+  color: #888;
 }
 
 /* 애니메이션 */
