@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import html
 from django.db.models import Count
 from datetime import datetime
+from rag_model import StreamHandler
 
 # Create your views here.
 
@@ -45,6 +46,41 @@ class AllNewsView(APIView):
         serializer = FestivalNewsSerializer(articles, many=True)  # 직렬화
         return Response(serializer.data, status=status.HTTP_200_OK)  # JSON 응답
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+# Import your RAG model or logic
+from rag_model import RAGChatbot, DocumentStore
+
+@csrf_exempt
+def chatbot_api(request):
+    if request.method in ["GET", "POST"]:
+        try:
+            data = json.loads(request.body) if request.method == "POST" else request.GET
+            question = data.get("question", "")
+
+            if not question:
+                return JsonResponse({"error": "Question is required"}, status=400)
+
+            # 문서 검색 로직 추가
+            chatbot = RAGChatbot()
+            relevant_docs = chatbot.search_documents(question)
+
+            if not relevant_docs:
+                return JsonResponse({"error": "No relevant documents found"}, status=404)
+
+            # 스트림 핸들러 인스턴스 생성
+            stream_handler = StreamHandler()
+
+            # 답변 생성 함수 호출 시 스트림 핸들러 인자 추가
+            answer = RAGChatbot.generate_answer(question, relevant_docs, stream_handler)
+
+            return JsonResponse({"answer": answer}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    else:
+        return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
 
