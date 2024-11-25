@@ -10,4 +10,5 @@ urlpatterns = [
     path('wordcloud/', views.get_wordcloud_data, name='get_wordcloud_data'),
     path('heatmap/', views.get_heatmap_data),
     path('top-regions/', TopRegionsView.as_view(), name='top-regions'),
+    path('chatbot/', views.chatbot_api, name='chatbot_api'),
 ]
