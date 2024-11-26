@@ -9,6 +9,7 @@ from django.db.models import Count
 from datetime import datetime
 from rag_model import StreamHandler
 import os
+from konlpy.tag import Okt
 
 # Create your views here.
 
@@ -105,6 +106,12 @@ def get_wordcloud_data(request, region='all'):
     cleaned_text = clean_html_keep_important(all_text)  # HTML 태그 제거
     cleaned_text = decode_html_entities(cleaned_text)  # HTML 엔티티 디코딩
 
+    # 프태소 분석기 초기화
+    okt = Okt()
+
+    # 명사 추출
+    nouns = okt.nouns(cleaned_text)
+
     # 프로젝트의 루트 디렉토리를 기준으로 경로 설정
     base_dir = os.path.dirname(os.path.abspath(__file__))
     stopwords_path = os.path.join(base_dir, 'stopwords-ko.txt')
@@ -112,11 +119,11 @@ def get_wordcloud_data(request, region='all'):
     with open(stopwords_path, 'r', encoding='utf-8') as f:
         stopwords = set(f.read().splitlines())
 
-    # 단어 분리 및 필터링: 소문자로 변환하여 단어만 추출, 불용어 제거
-    words = [word for word in re.findall(r'\b[a-zA-Z가-힣]+\b', cleaned_text.lower()) if word not in stopwords]
+    # 불용어 제거
+    filtered_nouns = [noun for noun in nouns if noun not in stopwords]
 
     # 단어 빈도 계산
-    word_counts = Counter(words)
+    word_counts = Counter(filtered_nouns)
 
     # 빈도 높은 단어를 상위 100개로 제한
     wordcloud_data = word_counts.most_common(100)
