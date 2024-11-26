@@ -63,9 +63,21 @@
       </div>
     </section>
     
+<!-- 챗봇 열기/닫기 버튼 -->
+<div class="chatbot-toggle" @click="toggleChat">
+      <span v-if="!isChatOpen">🤖</span>
+      <span v-else>❌</span>
+    </div>
+
     <!-- 챗봇 -->
-    <div class="chatbot">
-      <div class="chat-messages">
+    <div v-if="isChatOpen" class="chatbot">
+      <!-- 새로운 상단 박스 영역 -->
+      <div class="chatbot-header">
+        <span class="chatbot-name">Festival Chatbot 🤖</span>
+        <button class="close-chat" @click="closeChat">닫기</button>
+      </div>
+
+      <div id="chat-container" class="chat-messages">
         <div
           v-for="(message, index) in messages"
           :key="index"
@@ -75,7 +87,7 @@
           <span v-else>{{ message.text }}</span>
         </div>
       </div>
-        
+
       <!-- 사용자 입력 -->
       <div class="chat-input">
         <input
@@ -87,7 +99,6 @@
         <button @click="sendMessage" :disabled="loading">전송</button>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -118,6 +129,7 @@ export default {
       userInput: "", // 사용자 입력 내용
       messages: [], // 채팅 메시지 배열
       loading: false, // 로딩 상태
+      isChatOpen: false, // 챗봇 열기/닫기 상태
     };
   },
   computed: {
@@ -177,8 +189,26 @@ export default {
         this.messages[botMessageIndex].text = "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
       } finally {
         this.messages[botMessageIndex].isLoading = false;
+        this.scrollToBottom(); // 최신 메시지로 자동 스크롤
       }
     },
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const container = this.$el.querySelector("#chat-container");
+        if (container) container.scrollTop = container.scrollHeight;
+      });
+    },
+    toggleChat() {
+      this.isChatOpen = !this.isChatOpen;
+    },
+    closeChat() {
+      this.isChatOpen = false;
+    },
+  },
+  watch: {
+    messages() {
+      this.scrollToBottom();
+    }
   },
   mounted() {
     // 페이지 로드 시 모든 뉴스 데이터 가져오기
@@ -322,11 +352,30 @@ button:hover {
   background-color: #f8bbd0;
   cursor: not-allowed;
 }
+/* 챗봇 열기/닫기 버튼 */
+.chatbot-toggle {
+  position: fixed;
+  right: 20px;
+  bottom: 100px;
+  width: 50px;
+  height: 50px;
+  background-color: #e91e63;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+/* 챗봇 */
 .chatbot {
   position: fixed;
   right: 20px;
   bottom: 20px;
   width: 300px;
+  height: 400px;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -339,6 +388,8 @@ button:hover {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #ccc;
 }
 
 .user-message {
@@ -355,10 +406,6 @@ button:hover {
   padding: 8px;
   border-radius: 10px;
   margin-bottom: 5px;
-}
-
-.bot-message span {
-  display: block;
 }
 
 .chat-input {
@@ -389,6 +436,30 @@ button:hover {
   cursor: not-allowed;
 }
 
+/* 챗봇 상단 박스 영역 스타일 */
+.chatbot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  background-color: #fce4ec;
+  border-bottom: 1px solid #ccc;
+}
+
+.chatbot-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #e91e63;
+}
+
+.close-chat {
+  background-color: transparent;
+  color: #f44336;
+  border: none;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
 </style>
 
 
