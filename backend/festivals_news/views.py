@@ -8,6 +8,7 @@ import html
 from django.db.models import Count
 from datetime import datetime
 from rag_model import StreamHandler
+import os
 
 # Create your views here.
 
@@ -90,12 +91,10 @@ def clean_html_keep_important(text):
     soup = BeautifulSoup(text, "html.parser")
     return soup.get_text()  # 중요 내용은 유지하고 HTML 태그만 제거
 
-def get_wordcloud_data(request):
-    region = request.GET.get('region', 'all')  # "all"이 기본값
-
+def get_wordcloud_data(request, region='all'):
     # 지역별 데이터 필터링
     if region != 'all':
-        news_queryset = FestivalNews.objects.filter(festival_name__icontains=region)
+        news_queryset = FestivalNews.objects.filter(main_region=region)
     else:
         news_queryset = FestivalNews.objects.all()
 
@@ -106,8 +105,15 @@ def get_wordcloud_data(request):
     cleaned_text = clean_html_keep_important(all_text)  # HTML 태그 제거
     cleaned_text = decode_html_entities(cleaned_text)  # HTML 엔티티 디코딩
 
-    # 단어 분리 및 필터링: 소문자로 변환하여 단어만 추출
-    words = re.findall(r'\b[a-zA-Z가-힣]+\b', cleaned_text.lower())
+    # 프로젝트의 루트 디렉토리를 기준으로 경로 설정
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    stopwords_path = os.path.join(base_dir, 'stopwords-ko.txt')
+
+    with open(stopwords_path, 'r', encoding='utf-8') as f:
+        stopwords = set(f.read().splitlines())
+
+    # 단어 분리 및 필터링: 소문자로 변환하여 단어만 추출, 불용어 제거
+    words = [word for word in re.findall(r'\b[a-zA-Z가-힣]+\b', cleaned_text.lower()) if word not in stopwords]
 
     # 단어 빈도 계산
     word_counts = Counter(words)

@@ -6,9 +6,7 @@ const BASE_URL = 'http://127.0.0.1:8000';  // Django 서버의 기본 포트가 
 // 워드클라우드 데이터 가져오기
 export const fetchWordCloud = async (region) => {
   try {
-    const response = await axiosInstance(`${BASE_URL}/dashboard/wordcloud/`, {
-      params: { region },
-    });
+    const response = await axiosInstance.get(`${BASE_URL}/dashboard/wordcloud/${region}/`);
     return response.data;
   } catch (error) {
     console.error('워드클라우드 데이터 가져오기 실패:', error);
