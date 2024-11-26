@@ -44,7 +44,7 @@ class RAGChatbot:
 
         # LLM 초기화
         self.llm = ChatOpenAI(
-            model_name="gpt-4o-mini",
+            model_name="gpt-4o",
             temperature=0.7,
             streaming=True
         )
@@ -84,7 +84,8 @@ class RAGChatbot:
         system_prompt = """당신은 사용자의 질문에 대해 친절하고 전문적으로 답변하는 축제 가이드 AI 어시스턴트입니다.
         제공된 문서 정보를 바탕으로 답변하되, 문서 내용을 벗어나지 않도록 주의하세요.
         답변은 한국어로 작성하며, 이해하기 쉽게 설명하세요.
-        축제 정보를 제공하는 것이 목적입니다."""
+        축제 정보를 제공하는 것이 목적입니다.
+        축제 기간이 오늘 날짜 기준 지난 축제의 정보는 제공하지 마세요."""
         
         # 관련 문서 정보를 컨텍스트로 추가
         context = "관련 문서 정보:\n"

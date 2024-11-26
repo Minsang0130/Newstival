@@ -62,6 +62,32 @@
         <button :disabled="currentPage === totalPages" @click="currentPage++">다음 ▶</button>
       </div>
     </section>
+    
+    <!-- 챗봇 -->
+    <div class="chatbot">
+      <div class="chat-messages">
+        <div
+          v-for="(message, index) in messages"
+          :key="index"
+          :class="message.isUser ? 'user-message' : 'bot-message'"
+        >
+          <span v-if="message.isLoading">⏳ 메시지 처리 중...</span>
+          <span v-else>{{ message.text }}</span>
+        </div>
+      </div>
+        
+      <!-- 사용자 입력 -->
+      <div class="chat-input">
+        <input
+          v-model="userInput"
+          placeholder="질문을 입력하세요..."
+          @keyup.enter="sendMessage"
+          :disabled="loading"
+        />
+        <button @click="sendMessage" :disabled="loading">전송</button>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -89,6 +115,9 @@ export default {
       loading: false, // 로딩 상태
       currentPage: 1, // 현재 페이지
       articlesPerPage: 5, // 페이지당 기사 수
+      userInput: "", // 사용자 입력 내용
+      messages: [], // 채팅 메시지 배열
+      loading: false, // 로딩 상태
     };
   },
   computed: {
@@ -125,6 +154,29 @@ export default {
         this.articles = []; // 요청 실패 시 빈 데이터
       } finally {
         this.loading = false;
+      }
+    },
+    async sendMessage() {
+      const input = this.userInput.trim();
+      if (!input) return;
+
+      this.messages.push({ text: input, isUser: true, isLoading: false });
+      this.userInput = "";
+
+      const botMessageIndex = this.messages.length;
+      this.messages.push({ text: "처리 중...", isUser: false, isLoading: true });
+
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/dashboard/chatbot/", {
+          question: input,
+        });
+
+        this.messages[botMessageIndex].text = response.data.answer || "응답을 받을 수 없습니다.";
+      } catch (error) {
+        console.error("Chatbot API 호출 에러:", error);
+        this.messages[botMessageIndex].text = "오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      } finally {
+        this.messages[botMessageIndex].isLoading = false;
       }
     },
   },
@@ -270,6 +322,73 @@ button:hover {
   background-color: #f8bbd0;
   cursor: not-allowed;
 }
+.chatbot {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 300px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.user-message {
+  text-align: right;
+  background-color: #e0f7fa;
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 5px;
+}
+
+.bot-message {
+  text-align: left;
+  background-color: #fce4ec;
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 5px;
+}
+
+.bot-message span {
+  display: block;
+}
+
+.chat-input {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  outline: none;
+  border-radius: 0 0 0 8px;
+}
+
+.chat-input button {
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  background-color: #0288d1;
+  color: white;
+  border-radius: 0 0 8px 0;
+}
+
+.chat-input input:disabled,
+.chat-input button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
 </style>
 
 
