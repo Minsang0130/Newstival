@@ -63,18 +63,17 @@ def chatbot_api(request):
             if not question:
                 return JsonResponse({"error": "Question is required"}, status=400)
 
-            # 문서 검색 로직 추가
+            # RAGChatbot 인스턴스 생성
             chatbot = RAGChatbot()
+
+            # 문서 검색 로직 추가
             relevant_docs = chatbot.search_documents(question)
 
             if not relevant_docs:
                 return JsonResponse({"error": "No relevant documents found"}, status=404)
 
-            # 스트림 핸들러 인스턴스 생성
-            stream_handler = StreamHandler()
-
-            # 답변 생성 함수 호출 시 스트림 핸들러 인자 추가
-            answer = RAGChatbot.generate_answer(question, relevant_docs, stream_handler)
+            # 답변 생성 함수 호출 (인스턴스 메서드로 호출)
+            answer = chatbot.generate_answer(question, relevant_docs)
 
             return JsonResponse({"answer": answer}, status=200)
         except Exception as e:
