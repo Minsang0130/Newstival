@@ -7,6 +7,7 @@ import urllib.request
 from datetime import datetime, timedelta
 from django.utils.timezone import make_aware
 from dotenv import load_dotenv
+import time  # 추가
 
 # DJANGO_SETTINGS_MODULE 설정 (프로젝트 이름에 맞게 변경)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
@@ -138,7 +139,6 @@ def main():
     print("Saving festival details to database...")
     save_festival_details_to_db(directory)
 
-
     # 축제 이름과 지역 로드
     festival = []
     for file_name in os.listdir(directory):
@@ -147,17 +147,21 @@ def main():
                 data = json.load(f)
                 festival.extend([[festival['Title'], festival['Main Region']] for festival in data])
 
-    # 뉴스 검색 및 저장
-    print("Saving news articles to database...")
-    for name, main_region in festival:
-        print(f"Searching news for: {name}")
-        response = search_news(name)
+    # 뉴스 검색 및 저장을 30초마다 반복
+    while True:
+        print("Saving news articles to database...")
+        for name, main_region in festival:
+            print(f"Searching news for: {name}")
+            response = search_news(name)
 
-        if response and 'items' in response:
-            recent_articles = filter_recent_articles(response['items'])
-            save_articles_to_db(name, main_region, recent_articles)
-        else:
-            print(f"No articles found for {name}")
+            if response and 'items' in response:
+                recent_articles = filter_recent_articles(response['items'])
+                save_articles_to_db(name, main_region, recent_articles)
+            else:
+                print(f"No articles found for {name}")
+
+        print("Waiting for 30 seconds...")
+        time.sleep(30)  # 30초 대기
 
 
 if __name__ == "__main__":
