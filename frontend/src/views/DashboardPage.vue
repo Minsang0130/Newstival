@@ -3,7 +3,23 @@
     <!-- 첫 번째 행: 워드클라우드와 지도 -->
     <div class="dashboard-row">
       <div class="dashboard-block" id="wordcloud-container">
-        <div class="wordcloud-title">워드클라우드</div>
+        <div class="wordcloud-title">
+          워드클라우드
+          <select v-model="selectedRegion" @change="updateWordCloud">
+            <option value="all">전체</option>
+            <option value="전라북도">전라북도</option>
+            <option value="전라남도">전라남도</option>
+            <option value="충청남도">충청남도</option>
+            <option value="경상북도">경상북도</option>
+            <option value="경상남도">경상남도</option>
+            <option value="강원도">강원도</option>
+            <option value="부산시">부산시</option>
+            <option value="서울시">서울시</option>
+            <option value="인천시">인천시</option>
+            <option value="경기도">경기도</option>
+            <option value="대전시">대전시</option>
+          </select>
+        </div>
         <div id="wordcloud-content" class="wordcloud-content"></div>
       </div>
       <div class="dashboard-block" id="map-container">
@@ -22,9 +38,6 @@
   </div>
 </template>
 
-
-
-
 <script>
 import WordCloud from "wordcloud";
 import { fetchWordCloud, fetchHeatmap, fetchTopRegions } from "../api/dashboard";
@@ -36,7 +49,8 @@ export default {
   name: "DashboardPage",
   data() {
     return {
-      wordcloudData: [], // 워드클라우드 데이터
+      wordcloudData: [],
+      selectedRegion: 'all', // 기본값 설정
       loading: true,
       error: null,
       heatmapData: [], // 히트맵 데이터
@@ -44,19 +58,7 @@ export default {
     };
   },
   async mounted() {
-    try {
-      const wordCloudData = await fetchWordCloud();
-      if (Array.isArray(wordCloudData)) {
-        this.wordcloudData = wordCloudData;
-        this.renderWordCloud();
-      } else {
-        throw new Error("워드클라우드 데이터가 배열 형태가 아닙니다.");
-      }
-    } catch (error) {
-      this.error = "워드클라우드 데이터를 로드하는 데 실패했습니다.";
-      console.error("워드클라우드 데이터 로딩 중 오류 발생:", error);
-    }
-
+    await this.updateWordCloud();
     try {
       const heatmapData = await fetchHeatmap();
       if (Array.isArray(heatmapData)) {
@@ -83,39 +85,59 @@ export default {
     }
   },
   methods: {
+    async updateWordCloud() {
+      try {
+        const wordCloudData = await fetchWordCloud(this.selectedRegion);
+        if (Array.isArray(wordCloudData)) {
+          this.wordcloudData = wordCloudData;
+          this.renderWordCloud();
+        } else {
+          throw new Error("워드클라우드 데이터가 배열 형태가 아닙니다.");
+        }
+      } catch (error) {
+        this.error = "워드클라우드 데이터를 로드하는 데 실패했습니다.";
+        console.error("워드클라우드 데이터 로딩 중 오류 발생:", error);
+      }
+    },
     renderWordCloud() {
       const container = document.getElementById("wordcloud-content");
       if (container && this.wordcloudData.length > 0) {
+        const containerWidth = container.offsetWidth; // 컨테이너 너비
+        const containerHeight = container.offsetHeight; // 컨테이너 높이
+        const maxFrequency = Math.max(...this.wordcloudData.map(([_, size]) => size)); // 가장 높은 빈도
+
         const colors = [
-          "#E53E3E",
-          "#3182CE",
-          "#48BB78",
-          "#ED8936",
-          "#9F7AEA",
-          "#ECC94B",
+            "#E53E3E",
+            "#3182CE",
+            "#48BB78",
+            "#ED8936",
+            "#9F7AEA",
+            "#ECC94B",
         ];
 
         const options = {
-          list: this.wordcloudData, // 서버에서 받아온 데이터
-          gridSize: 3,
-          weightFactor: (size) => size * 0.5,
-          fontFamily: "Noto Sans KR, sans-serif",
-          shape: "square",
-          color: () => colors[Math.floor(Math.random() * colors.length)],
-          rotateRatio: 0,
-          rotationSteps: 2,
-          backgroundColor: "#ffffff",
-          minSize: 10,
-          maxSize: 100,
+            list: this.wordcloudData,
+            gridSize: Math.round(containerWidth / 50), // 컨테이너 크기에 비례하여 그리드 설정
+            weightFactor: (size) => (size / maxFrequency) * (containerWidth / 5), // 컨테이너 크기를 기준으로 글씨 크기 조정
+            fontFamily: "Noto Sans KR, sans-serif",
+            shape: "square",
+            color: () => colors[Math.floor(Math.random() * colors.length)],
+            rotateRatio: 0,
+            rotationSteps: 2,
+            backgroundColor: "#ffffff",
+            minSize: 30, // 단어 최소 크기
+            maxSize: Math.min(containerWidth, containerHeight) / 5, // 단어 최대 크기를 컨테이너 크기에 비례하여 설정
         };
+
         WordCloud(container, options);
       } else {
         console.error("워드클라우드 컨테이너를 찾을 수 없거나 데이터가 비어 있습니다.");
       }
     },
+
     async fetchHeatmapData() {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/dashboard/heatmap/");
+      try {
+        const response = await fetch("http://127.0.0.1:8000/dashboard/heatmap/");
       if (!response.ok) {
         throw new Error("Failed to fetch heatmap data");
       }
