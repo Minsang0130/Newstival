@@ -6,7 +6,7 @@ const baseURL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 // Axios 인스턴스 생성
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 5000, // 요청 타임아웃 (ms)
+  timeout: 15000, // 요청 타임아웃 (ms)
   headers: {
     "Content-Type": "application/json",
   },

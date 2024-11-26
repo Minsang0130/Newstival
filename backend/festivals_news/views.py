@@ -128,6 +128,10 @@ def get_wordcloud_data(request, region='all'):
     # 빈도 높은 단어를 상위 100개로 제한
     wordcloud_data = word_counts.most_common(100)
 
+    # 데이터가 비어 있는지 확인
+    if not wordcloud_data:
+        return JsonResponse({"error": "No data available for wordcloud"}, status=404)
+
     return JsonResponse(wordcloud_data, safe=False)
 
 def get_heatmap_data(request):

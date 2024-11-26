@@ -88,11 +88,12 @@ export default {
     async updateWordCloud() {
       try {
         const wordCloudData = await fetchWordCloud(this.selectedRegion);
-        if (Array.isArray(wordCloudData)) {
+        if (Array.isArray(wordCloudData) && wordCloudData.length > 0) {
           this.wordcloudData = wordCloudData;
           this.renderWordCloud();
         } else {
-          throw new Error("워드클라우드 데이터가 배열 형태가 아닙니다.");
+          this.wordcloudData = [];
+          console.warn("워드클라우드 데이터가 비어 있습니다.");
         }
       } catch (error) {
         this.error = "워드클라우드 데이터를 로드하는 데 실패했습니다.";
