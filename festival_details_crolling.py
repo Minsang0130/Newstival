@@ -88,7 +88,7 @@ for page in range(1, 13):  # 테스트를 위해 1페이지로 제한
                             'URL': detail_url
                         })
 
-os.makedirs('data/festival_info', exist_ok=True)
+os.makedirs('backend/data/festival_info', exist_ok=True)
 # JSON 파일 저장
 with open('data/festival_info/festival_details.json', 'w', encoding='utf-8') as json_file:
     json.dump(festival_data, json_file, ensure_ascii=False, indent=4)

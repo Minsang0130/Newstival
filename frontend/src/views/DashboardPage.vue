@@ -30,10 +30,13 @@
     <!-- 두 번째 행: 바 차트 1과 바 차트 2 -->
     <div class="dashboard-row">
       <div class="dashboard-block" id="barchart1-container">
-        <div class="chart-title">바차트1 제목</div>
+        <div class="chart-title">오늘 기사 TOP3 지역</div>
         <div id="barchart1-content"></div>
       </div>
-      <div class="dashboard-block" id="barchart2-container">바 차트 2</div>
+      <div class="dashboard-block" id="barchart2-container">
+        <div class="chart-title">현재 날씨 정보</div>
+        <div id="barchart2-content"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -44,6 +47,7 @@ import { fetchWordCloud, fetchHeatmap, fetchTopRegions } from "../api/dashboard"
 import * as d3 from "d3";
 import * as topojson from "topojson";
 import southKoreaMap from "../assets/south-korea-map.json";
+import axios from "axios";
 
 export default {
   name: "DashboardPage",
@@ -55,6 +59,7 @@ export default {
       error: null,
       heatmapData: [], // 히트맵 데이터
       topRegionsData: [], // TOP 3 지역 데이터
+      weatherData: [], // 날씨 데이터를 저장할 배열
     };
   },
   async mounted() {
@@ -83,6 +88,8 @@ export default {
     } catch (error) {
       console.error("TOP 3 지역 데이터 로딩 중 오류 발생:", error);
     }
+
+    await this.fetchWeatherData();
   },
   methods: {
     async updateWordCloud() {
@@ -126,7 +133,7 @@ export default {
             rotateRatio: 0,
             rotationSteps: 2,
             backgroundColor: "#ffffff",
-            minSize: 30, // 단어 최소 크기
+            minSize: 10, // 단어 최소 크기
             maxSize: Math.min(containerWidth, containerHeight) / 5, // 단어 최대 크기를 컨테이너 크기에 비례하여 설정
         };
 
@@ -281,6 +288,67 @@ export default {
       const formattedDate = this.formatDate(today);
       document.querySelector('.chart-title').textContent = `${formattedDate} 기사 수 TOP3`;
     },
+    async fetchWeatherData() {
+      const apiKey = "86bb17407706749eda7fb7a24a25b10f"; // OpenWeatherMap API 키
+      const cities = ["Seoul", "Busan", "Incheon","Gyeonggi-do", "Jeollabuk-do", "Jeollanam-do", "Chungcheongnam-do",
+      "Chungcheongbuk-do", "Gyeongsangbuk-do", "Gyeongsangnam-do", "Gangwon-do"]; // 원하는 도시 목록
+      const requests = cities.map(city =>
+        axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&lang=kr&units=metric`)
+      );
+
+      try {
+        const responses = await Promise.all(requests);
+        this.weatherData = responses.map(response => ({
+          region: response.data.name,
+          temperature: response.data.main.temp,
+          humidity: response.data.main.humidity,
+          description: response.data.weather[0].description,
+        }));
+        this.renderWeatherTable();
+      } catch (error) {
+        console.error("날씨 데이터 로딩 중 오류 발생:", error);
+      }
+    },
+    renderWeatherTable() {
+  const container = document.getElementById("barchart2-container");
+  if (container) {
+    // 컨테이너에 스타일을 추가하여 제목과 테이블을 별도로 처리
+    container.style.display = "flex"; // flexbox 레이아웃으로 설정
+    container.style.flexDirection = "column"; // 세로로 배치
+    
+    // 테이블 생성
+    const table = document.createElement("table");
+    table.style.width = "100%";
+    table.style.borderCollapse = "collapse";
+
+    // 테이블 헤더 생성
+    const headerRow = table.insertRow();
+    ["지역", "온도", "습도", "날씨"].forEach((text) => {
+      const th = document.createElement("th");
+      th.textContent = text;
+      th.style.border = "1px solid #dee2e6";
+      th.style.padding = "8px";
+      th.style.backgroundColor = "#f8f9fa";
+      headerRow.appendChild(th);
+    });
+
+    // 테이블 데이터 생성
+    this.weatherData.forEach((weather) => {
+      const row = table.insertRow();
+      ["region", "temperature", "humidity", "description"].forEach((key) => {
+        const cell = row.insertCell();
+        cell.textContent = weather[key];
+        cell.style.border = "1px solid #dee2e6";
+        cell.style.padding = "8px";
+      });
+    });
+
+    // 기존 내용 제거 후 테이블 추가
+    container.appendChild(table);
+  } else {
+    console.error("바차트 2 컨테이너를 찾을 수 없습니다.");
+      }
+    },
   },
 };
 </script>
@@ -323,7 +391,7 @@ export default {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-.chart-title, .map-title, .wordcloud-title {
+.chart-title, .map-title, .wordcloud-title, .weather-title {
   font-size: 22px;
   font-weight: bold;
   text-align: center;
@@ -399,6 +467,40 @@ export default {
 
 #barchart1-container text {
   fill: #000;
+}
+
+#barchart2-container {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: auto;
+}
+
+#barchart2-container .chart-title {
+  flex-shrink: 0; /* 타이틀이 고정된 높이를 가지도록 설정 */
+}
+
+#barchart2-container table {
+  flex-grow: 1; /* 테이블이 남은 공간을 차지하도록 설정 */
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#barchart2-container th, #barchart2-container td {
+  border: 1px solid #dee2e6;
+  padding: 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#barchart2-container th {
+  background-color: #f8f9fa;
 }
 
 </style>
